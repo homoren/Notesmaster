@@ -71,6 +71,7 @@ import net.micode.notes.tool.ResourceParser;
 import net.micode.notes.ui.NotesListAdapter.AppWidgetAttribute;
 import net.micode.notes.widget.NoteWidgetProvider_2x;
 import net.micode.notes.widget.NoteWidgetProvider_4x;
+import net.micode.notes.ui.NoteEditText;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -78,10 +79,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashSet;
 
+
 public class NotesListActivity extends Activity implements OnClickListener, OnItemLongClickListener {
     private static final int FOLDER_NOTE_LIST_QUERY_TOKEN = 0;
 
-    private static final int FOLDER_LIST_QUERY_TOKEN      = 1;
+    private static final int FOLDER_LIST_QUERY_TOKEN = 1;
 
     private static final int MENU_FOLDER_DELETE = 0;
 
@@ -93,7 +95,7 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
 
     private enum ListEditState {
         NOTE_LIST, SUB_FOLDER, CALL_RECORD_FOLDER
-    };
+    }
 
     private ListEditState mState;
 
@@ -121,7 +123,7 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
 
     private static final String TAG = "NotesListActivity";
 
-    public static final int NOTES_LISTVIEW_SCROLL_RATE = 30;
+    //public static final int NOTES_LISTVIEW_SCROLL_RATE = 30;
 
     private NoteItemData mFocusNoteDataItem;
 
@@ -141,9 +143,8 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
         setContentView(R.layout.note_list);
         initResources();
 
-        /**
-         * Insert an introduction when user firstly use this application
-         */
+         //Insert an introduction when user firstly use this application
+
         setAppInfoFromRawRes();
     }
 
@@ -650,6 +651,7 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
                 } else {
                     positive.setEnabled(true);
                 }
+                //updateWordCount();//// 输入时实时更新字数
             }
 
             public void afterTextChanged(Editable s) {

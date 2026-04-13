@@ -154,6 +154,8 @@ public class NoteEditActivity extends Activity implements OnClickListener,
     private String mUserQuery;
     private Pattern mPattern;
 
+    private TextView mWordCount;//字数
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -298,6 +300,8 @@ public class NoteEditActivity extends Activity implements OnClickListener,
          * is not ready
          */
         showAlertHeader();
+
+        updateWordCount();//更新字数
     }
 
     private void showAlertHeader() {
@@ -400,6 +404,22 @@ public class NoteEditActivity extends Activity implements OnClickListener,
             mFontSizeId = ResourceParser.BG_DEFAULT_FONT_SIZE;
         }
         mEditTextList = (LinearLayout) findViewById(R.id.note_edit_list);
+
+        mWordCount = findViewById(R.id.tv_word_count);//初始化
+
+        // 普通便签输入时实时刷新字数
+        mNoteEditor.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                updateWordCount(); // 这里才对！
+            }
+
+            @Override
+            public void afterTextChanged(android.text.Editable s) {}
+        });
     }
 
     @Override
@@ -863,5 +883,11 @@ public class NoteEditActivity extends Activity implements OnClickListener,
 
     private void showToast(int resId, int duration) {
         Toast.makeText(this, resId, duration).show();
+    }
+
+    private void updateWordCount() {
+        getWorkingText();
+        int count = mWorkingNote.getContent() == null ? 0 : mWorkingNote.getContent().length();
+        mWordCount.setText("字数：" + count);
     }
 }
