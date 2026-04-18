@@ -420,6 +420,11 @@ public class NoteEditActivity extends Activity implements OnClickListener,
             @Override
             public void afterTextChanged(android.text.Editable s) {}
         });
+        // 一键清空按钮
+        findViewById(R.id.btn_clear).setOnClickListener(v -> {
+            mNoteEditor.setText("");
+            Toast.makeText(this, "已清空内容", Toast.LENGTH_SHORT).show();
+        });
     }
 
     @Override
@@ -523,7 +528,6 @@ public class NoteEditActivity extends Activity implements OnClickListener,
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId(); // 统一获取ID，避免重复调用
-
         if (itemId == R.id.menu_new_note) {
             createNewNote();
         } else if (itemId == R.id.menu_delete) {

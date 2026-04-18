@@ -409,4 +409,16 @@
         android:textSize="14sp"
         android:text="字数：0"/>
 
+    <!-- 一键清空按钮 -->
+    <Button
+        android:id="@+id/btn_clear"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:layout_margin="12dp"
+        android:text="一键清空"
+        android:textSize="12sp"
+        android:background="#FFE0E0"
+        android:textColor="#D83333"/>
+
 </FrameLayout>
