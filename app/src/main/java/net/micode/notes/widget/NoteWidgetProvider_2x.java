@@ -23,23 +23,50 @@ import net.micode.notes.R;
 import net.micode.notes.data.Notes;
 import net.micode.notes.tool.ResourceParser;
 
-
+/**
+ * 2x规格 笔记桌面小部件提供者
+ * 继承自基类 NoteWidgetProvider，专门实现 2x 尺寸小部件的配置
+ */
 public class NoteWidgetProvider_2x extends NoteWidgetProvider {
+
+    /**
+     * 小部件更新回调
+     * 系统要求更新小部件时调用，直接调用父类实现统一更新逻辑
+     * @param context 上下文
+     * @param appWidgetManager 小部件管理器
+     * @param appWidgetIds 需要更新的小部件ID数组
+     */
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         super.update(context, appWidgetManager, appWidgetIds);
     }
 
+    /**
+     * 获取2x小部件对应的布局文件ID
+     * 重写父类抽象方法，指定使用 2x 规格的布局
+     * @return 布局ID：widget_2x
+     */
     @Override
     protected int getLayoutId() {
         return R.layout.widget_2x;
     }
 
+    /**
+     * 根据背景ID获取2x小部件对应的背景资源
+     * 重写父类方法，提供2x尺寸专用的背景资源
+     * @param bgId 背景编号
+     * @return 2x小部件背景资源ID
+     */
     @Override
     protected int getBgResourceId(int bgId) {
         return ResourceParser.WidgetBgResources.getWidget2xBgResource(bgId);
     }
 
+    /**
+     * 获取当前小部件类型
+     * 重写父类方法，标记为 2x 规格小部件
+     * @return 小部件类型常量：TYPE_WIDGET_2X
+     */
     @Override
     protected int getWidgetType() {
         return Notes.TYPE_WIDGET_2X;
