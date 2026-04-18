@@ -32,36 +32,51 @@ import net.micode.notes.data.Notes.TextNote;
 import net.micode.notes.tool.ResourceParser.NoteBgResources;
 
 
+/**
+ * 工作笔记模型类
+ * 负责封装单条笔记的所有数据与操作，是界面与数据库之间的核心桥梁
+ */
 public class WorkingNote {
-    // Note for the working note
+    // 笔记实体对象，存储笔记元数据
     private Note mNote;
-    // Note Id
+    // 笔记ID
     private long mNoteId;
-    // Note content
+    // 笔记内容
     private String mContent;
-    // Note mode
+    // 笔记模式（普通/清单）
     private int mMode;
 
+    // 提醒时间
     private long mAlertDate;
 
+    // 修改时间
     private long mModifiedDate;
 
+    // 背景色ID
     private int mBgColorId;
 
+    // 桌面小部件ID
     private int mWidgetId;
 
+    // 小部件类型
     private int mWidgetType;
 
+    // 所属文件夹ID
     private long mFolderId;
 
+    // 上下文对象
     private Context mContext;
 
+    // 日志TAG
     private static final String TAG = "WorkingNote";
 
+    // 是否被标记删除
     private boolean mIsDeleted;
 
+    // 笔记设置变更监听器
     private NoteSettingChangedListener mNoteSettingStatusListener;
 
+    // 查询数据表需要的字段
     public static final String[] DATA_PROJECTION = new String[] {
             DataColumns.ID,
             DataColumns.CONTENT,
@@ -72,6 +87,7 @@ public class WorkingNote {
             DataColumns.DATA4,
     };
 
+    // 查询笔记表需要的字段
     public static final String[] NOTE_PROJECTION = new String[] {
             NoteColumns.PARENT_ID,
             NoteColumns.ALERTED_DATE,
@@ -81,49 +97,55 @@ public class WorkingNote {
             NoteColumns.MODIFIED_DATE
     };
 
+    // 数据表字段索引
     private static final int DATA_ID_COLUMN = 0;
-
     private static final int DATA_CONTENT_COLUMN = 1;
-
     private static final int DATA_MIME_TYPE_COLUMN = 2;
-
     private static final int DATA_MODE_COLUMN = 3;
 
+    // 笔记表字段索引
     private static final int NOTE_PARENT_ID_COLUMN = 0;
-
     private static final int NOTE_ALERTED_DATE_COLUMN = 1;
-
     private static final int NOTE_BG_COLOR_ID_COLUMN = 2;
-
     private static final int NOTE_WIDGET_ID_COLUMN = 3;
-
     private static final int NOTE_WIDGET_TYPE_COLUMN = 4;
-
     private static final int NOTE_MODIFIED_DATE_COLUMN = 5;
 
-    // New note construct
+    /**
+     * 新建笔记的构造方法
+     * @param context 上下文
+     * @param folderId 所属文件夹ID
+     */
     private WorkingNote(Context context, long folderId) {
         mContext = context;
         mAlertDate = 0;
         mModifiedDate = System.currentTimeMillis();
         mFolderId = folderId;
         mNote = new Note();
-        mNoteId = 0;
+        mNoteId = 0;       // 0表示新建笔记，未存入数据库
         mIsDeleted = false;
         mMode = 0;
         mWidgetType = Notes.TYPE_WIDGET_INVALIDE;
     }
 
-    // Existing note construct
+    /**
+     * 加载已有笔记的构造方法
+     * @param context 上下文
+     * @param noteId 笔记ID
+     * @param folderId 所属文件夹ID
+     */
     private WorkingNote(Context context, long noteId, long folderId) {
         mContext = context;
         mNoteId = noteId;
         mFolderId = folderId;
         mIsDeleted = false;
         mNote = new Note();
-        loadNote();
+        loadNote(); // 加载笔记数据
     }
 
+    /**
+     * 加载笔记基础信息（从note表查询）
+     */
     private void loadNote() {
         Cursor cursor = mContext.getContentResolver().query(
                 ContentUris.withAppendedId(Notes.CONTENT_NOTE_URI, mNoteId), NOTE_PROJECTION, null,
@@ -143,13 +165,16 @@ public class WorkingNote {
             Log.e(TAG, "No note with id:" + mNoteId);
             throw new IllegalArgumentException("Unable to find note with id " + mNoteId);
         }
-        loadNoteData();
+        loadNoteData(); // 继续加载笔记内容数据
     }
 
+    /**
+     * 加载笔记内容数据（从data表查询）
+     */
     private void loadNoteData() {
         Cursor cursor = mContext.getContentResolver().query(Notes.CONTENT_DATA_URI, DATA_PROJECTION,
                 DataColumns.NOTE_ID + "=?", new String[] {
-                    String.valueOf(mNoteId)
+                        String.valueOf(mNoteId)
                 }, null);
 
         if (cursor != null) {
@@ -157,10 +182,12 @@ public class WorkingNote {
                 do {
                     String type = cursor.getString(DATA_MIME_TYPE_COLUMN);
                     if (DataConstants.NOTE.equals(type)) {
+                        // 普通文本笔记
                         mContent = cursor.getString(DATA_CONTENT_COLUMN);
                         mMode = cursor.getInt(DATA_MODE_COLUMN);
                         mNote.setTextDataId(cursor.getLong(DATA_ID_COLUMN));
                     } else if (DataConstants.CALL_NOTE.equals(type)) {
+                        // 通话笔记
                         mNote.setCallDataId(cursor.getLong(DATA_ID_COLUMN));
                     } else {
                         Log.d(TAG, "Wrong note type with type:" + type);
@@ -174,8 +201,11 @@ public class WorkingNote {
         }
     }
 
+    /**
+     * 创建一条空的新笔记
+     */
     public static WorkingNote createEmptyNote(Context context, long folderId, int widgetId,
-            int widgetType, int defaultBgColorId) {
+                                              int widgetType, int defaultBgColorId) {
         WorkingNote note = new WorkingNote(context, folderId);
         note.setBgColorId(defaultBgColorId);
         note.setWidgetId(widgetId);
@@ -183,23 +213,31 @@ public class WorkingNote {
         return note;
     }
 
+    /**
+     * 根据笔记ID加载一条已有笔记
+     */
     public static WorkingNote load(Context context, long id) {
         return new WorkingNote(context, id, 0);
     }
 
+    /**
+     * 保存笔记到数据库
+     */
     public synchronized boolean saveNote() {
         if (isWorthSaving()) {
             if (!existInDatabase()) {
+                // 新建笔记，获取新笔记ID
                 if ((mNoteId = Note.getNewNoteId(mContext, mFolderId)) == 0) {
                     Log.e(TAG, "Create new note fail with id:" + mNoteId);
                     return false;
                 }
             }
 
+            // 同步数据到数据库
             mNote.syncNote(mContext, mNoteId);
 
             /**
-             * Update widget content if there exist any widget of this note
+             * 如果笔记关联了小部件，更新小部件内容
              */
             if (mWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID
                     && mWidgetType != Notes.TYPE_WIDGET_INVALIDE
@@ -212,10 +250,17 @@ public class WorkingNote {
         }
     }
 
+    /**
+     * 判断笔记是否已存在于数据库（ID>0表示已保存）
+     */
     public boolean existInDatabase() {
         return mNoteId > 0;
     }
 
+    /**
+     * 判断笔记是否需要保存
+     * 已删除/空内容/未修改则不需要保存
+     */
     private boolean isWorthSaving() {
         if (mIsDeleted || (!existInDatabase() && TextUtils.isEmpty(mContent))
                 || (existInDatabase() && !mNote.isLocalModified())) {
@@ -225,10 +270,16 @@ public class WorkingNote {
         }
     }
 
+    /**
+     * 设置笔记设置变更监听器
+     */
     public void setOnSettingStatusChangedListener(NoteSettingChangedListener l) {
         mNoteSettingStatusListener = l;
     }
 
+    /**
+     * 设置提醒时间
+     */
     public void setAlertDate(long date, boolean set) {
         if (date != mAlertDate) {
             mAlertDate = date;
@@ -239,14 +290,20 @@ public class WorkingNote {
         }
     }
 
+    /**
+     * 标记笔记为删除状态
+     */
     public void markDeleted(boolean mark) {
         mIsDeleted = mark;
         if (mWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID
                 && mWidgetType != Notes.TYPE_WIDGET_INVALIDE && mNoteSettingStatusListener != null) {
-                mNoteSettingStatusListener.onWidgetChanged();
+            mNoteSettingStatusListener.onWidgetChanged();
         }
     }
 
+    /**
+     * 设置笔记背景色
+     */
     public void setBgColorId(int id) {
         if (id != mBgColorId) {
             mBgColorId = id;
@@ -257,6 +314,9 @@ public class WorkingNote {
         }
     }
 
+    /**
+     * 设置清单模式/普通模式
+     */
     public void setCheckListMode(int mode) {
         if (mMode != mode) {
             if (mNoteSettingStatusListener != null) {
@@ -267,6 +327,9 @@ public class WorkingNote {
         }
     }
 
+    /**
+     * 设置小部件类型
+     */
     public void setWidgetType(int type) {
         if (type != mWidgetType) {
             mWidgetType = type;
@@ -274,6 +337,9 @@ public class WorkingNote {
         }
     }
 
+    /**
+     * 设置小部件ID
+     */
     public void setWidgetId(int id) {
         if (id != mWidgetId) {
             mWidgetId = id;
@@ -281,6 +347,9 @@ public class WorkingNote {
         }
     }
 
+    /**
+     * 设置笔记文本内容
+     */
     public void setWorkingText(String text) {
         if (!TextUtils.equals(mContent, text)) {
             mContent = text;
@@ -288,80 +357,121 @@ public class WorkingNote {
         }
     }
 
+    /**
+     * 将普通笔记转换为通话笔记
+     */
     public void convertToCallNote(String phoneNumber, long callDate) {
         mNote.setCallData(CallNote.CALL_DATE, String.valueOf(callDate));
         mNote.setCallData(CallNote.PHONE_NUMBER, phoneNumber);
         mNote.setNoteValue(NoteColumns.PARENT_ID, String.valueOf(Notes.ID_CALL_RECORD_FOLDER));
     }
 
+    /**
+     * 判断是否设置了提醒
+     */
     public boolean hasClockAlert() {
         return (mAlertDate > 0 ? true : false);
     }
 
+    /**
+     * 获取笔记内容
+     */
     public String getContent() {
         return mContent;
     }
 
+    /**
+     * 获取提醒时间
+     */
     public long getAlertDate() {
         return mAlertDate;
     }
 
+    /**
+     * 获取修改时间
+     */
     public long getModifiedDate() {
         return mModifiedDate;
     }
 
+    /**
+     * 获取背景色资源ID
+     */
     public int getBgColorResId() {
         return NoteBgResources.getNoteBgResource(mBgColorId);
     }
 
+    /**
+     * 获取背景色ID
+     */
     public int getBgColorId() {
         return mBgColorId;
     }
 
+    /**
+     * 获取标题栏背景资源ID
+     */
     public int getTitleBgResId() {
         return NoteBgResources.getNoteTitleBgResource(mBgColorId);
     }
 
+    /**
+     * 获取清单模式
+     */
     public int getCheckListMode() {
         return mMode;
     }
 
+    /**
+     * 获取笔记ID
+     */
     public long getNoteId() {
         return mNoteId;
     }
 
+    /**
+     * 获取所属文件夹ID
+     */
     public long getFolderId() {
         return mFolderId;
     }
 
+    /**
+     * 获取小部件ID
+     */
     public int getWidgetId() {
         return mWidgetId;
     }
 
+    /**
+     * 获取小部件类型
+     */
     public int getWidgetType() {
         return mWidgetType;
     }
 
+    /**
+     * 笔记设置变更监听器接口
+     * 监听背景色、提醒、小部件、模式等变化
+     */
     public interface NoteSettingChangedListener {
         /**
-         * Called when the background color of current note has just changed
+         * 笔记背景色改变时调用
          */
         void onBackgroundColorChanged();
 
         /**
-         * Called when user set clock
+         * 设置提醒时调用
          */
         void onClockAlertChanged(long date, boolean set);
 
         /**
-         * Call when user create note from widget
+         * 小部件内容变化时调用
          */
         void onWidgetChanged();
 
         /**
-         * Call when switch between check list mode and normal mode
-         * @param oldMode is previous mode before change
-         * @param newMode is new mode
+         * 切换普通/清单模式时调用
          */
         void onCheckListModeChanged(int oldMode, int newMode);
     }
