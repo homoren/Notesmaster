@@ -53,9 +53,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.OnBackPressedDispatcher;
-import androidx.activity.OnBackPressedDispatcherOwner;
-import androidx.activity.ComponentActivity;
+import android.content.ClipboardManager;
+import android.content.ClipData;
 
 import net.micode.notes.R;
 import net.micode.notes.data.Notes;
@@ -441,11 +440,6 @@ public class NoteEditActivity extends Activity implements OnClickListener,
             public void afterTextChanged(android.text.Editable s) {}
         });
 
-        // 一键清空
-        findViewById(R.id.btn_clear).setOnClickListener(v -> {
-            mNoteEditor.setText("");
-            Toast.makeText(this, "已清空内容", Toast.LENGTH_SHORT).show();
-        });
     }
 
     @Override
@@ -608,6 +602,26 @@ public class NoteEditActivity extends Activity implements OnClickListener,
         } else if (itemId == R.id.menu_delete_remind) {
             mWorkingNote.setAlertDate(0, false);
         }
+
+        // 一键复制
+        else if (itemId == R.id.menu_copy) {
+            String content = mNoteEditor.getText().toString().trim();
+            if (!content.isEmpty()) {
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText("笔记", content);
+                clipboard.setPrimaryClip(clip);
+                Toast.makeText(this, "复制成功", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "笔记为空", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        // 一键清空
+        else if (itemId == R.id.menu_clear) {
+            mNoteEditor.setText("");
+            Toast.makeText(this, "已清空内容", Toast.LENGTH_SHORT).show();
+        }
+
         return true;
     }
 
@@ -953,8 +967,11 @@ public class NoteEditActivity extends Activity implements OnClickListener,
      * 更新字数统计
      */
     private void updateWordCount() {
-        getWorkingText();
-        int count = mWorkingNote.getContent() == null ? 0 : mWorkingNote.getContent().length();
-        mWordCount.setText("字数：" + count);
+        String content = mNoteEditor.getText().toString();
+        int charCount = content.length();
+        // 计算行数
+        int lineCount = mNoteEditor.getLineCount();
+        // 显示双数据
+        mWordCount.setText(String.format("字数：%d | 行数：%d", charCount, lineCount));
     }
 }

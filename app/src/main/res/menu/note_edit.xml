@@ -50,4 +50,13 @@
     <item
         android:id="@+id/menu_delete_remind"
         android:title="@string/menu_remove_remind" />
+
+    <item
+        android:id="@+id/menu_copy"
+        android:title="复制内容" />
+    <item
+        android:id="@+id/menu_clear"
+        android:title="一键清空" />
+
+
 </menu>

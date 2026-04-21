@@ -17,6 +17,10 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="file_path">/MIUI/notes/</string>
+    <string name="file_name_txt_format">notes_%s.txt</string>
+    <string name="format_folder_files_count">(%d)</string>
+    <string name="preferences_last_sync_time_format">yyyy-MM-dd hh:mm:ss</string>
     <string name="app_name">便签</string>
     <string name="app_widget2x2">便签2x2</string>
     <string name="app_widget4x4">便签4x4</string>

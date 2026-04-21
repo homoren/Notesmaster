@@ -16,16 +16,18 @@
 -->
 
 <menu
-    xmlns:android="http://schemas.android.com/apk/res/android">
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">  <!-- 加这一行 -->
+
     <item
         android:id="@+id/move"
         android:title="@string/menu_move"
         android:icon="@drawable/menu_move"
-        android:showAsAction="always|withText" />
+        app:showAsAction="always|withText" />  <!-- 改成 app: -->
 
     <item
         android:id="@+id/delete"
         android:title="@string/menu_delete"
         android:icon="@drawable/menu_delete"
-        android:showAsAction="always|withText" />
+        app:showAsAction="always|withText" />  <!-- 改成 app: -->
 </menu>
